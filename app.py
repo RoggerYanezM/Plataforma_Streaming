@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
+app.secret_key = 'clave_secreta_super_segura_streaming'  # Necesario para manejar sesiones y mensajes flash
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///streaming_gestor.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -40,13 +41,15 @@ class Withdrawal(db.Model):
 with app.app_context():
     db.create_all()
     if not User.query.filter_by(username='admin').first():
-        hashed_password = generate_password_hash('1234')
+        hashed_password = generate_password_hash('yul1415341620$')
         admin_user = User(username='admin', password=hashed_password)
         db.session.add(admin_user)
         db.session.commit()
 
 @app.route('/')
 def home():
+    if 'user' in session:
+        return redirect(url_for('dashboard'))
     return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -57,14 +60,19 @@ def login():
         user = User.query.filter_by(username=user_input).first()
         
         if user and check_password_hash(user.password, pass_input):
+            session['user'] = user_input
             return redirect(url_for('dashboard'))
         else:
-            return "Usuario o contraseña incorrectos. <a href='/login'>Intentar de nuevo</a>"
+            flash("Usuario o contraseña incorrectos", "error")
+            return render_template('login.html')
             
     return render_template('login.html')
 
 @app.route('/dashboard')
 def dashboard():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+        
     active_tab = request.args.get('tab', 'overview')
     
     accounts = StreamingAccount.query.all()
@@ -87,8 +95,15 @@ def dashboard():
                            total_withdrawals=total_withdrawals,
                            net_profit=net_profit)
 
+@app.route('/logout')
+def logout():
+    session.pop('user', None)
+    return redirect(url_for('login'))
+
 @app.route('/add_account', methods=['POST'])
 def add_account():
+    if 'user' not in session:
+        return redirect(url_for('login'))
     new_acc = StreamingAccount(
         platform=request.form['platform'],
         email=request.form['email'],
@@ -104,6 +119,8 @@ def add_account():
 
 @app.route('/add_sale', methods=['POST'])
 def add_sale():
+    if 'user' not in session:
+        return redirect(url_for('login'))
     new_sale = ClientSale(
         client_name=request.form['client_name'],
         phone=request.form['phone'],
@@ -117,6 +134,8 @@ def add_sale():
 
 @app.route('/add_withdrawal', methods=['POST'])
 def add_withdrawal():
+    if 'user' not in session:
+        return redirect(url_for('login'))
     new_w = Withdrawal(
         amount=float(request.form['amount']),
         description=request.form['description'],
