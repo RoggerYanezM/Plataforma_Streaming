@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control - Gestor de Streaming</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Fondo cinematográfico profundo con iluminación ambiental multicapa */
+        body {
+            background-color: #030712;
+            background-image: 
+                radial-gradient(circle at 10% 10%, rgba(126, 34, 206, 0.15) 0%, transparent 45%),
+                radial-gradient(circle at 90% 90%, rgba(79, 70, 229, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.9) 0%, transparent 100%);
+            min-height: 100vh;
+        }
+        /* Scrollbar personalizado elegante */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(3, 7, 18, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(147, 51, 234, 0.3);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(147, 51, 234, 0.6);
+        }
+    </style>
+</head>
+<body class="text-white min-h-screen flex selection:bg-purple-500 selection:text-white">
+
+    <!-- BARRA LATERAL IZQUIERDA -->
+    <aside class="w-64 bg-slate-900/60 backdrop-blur-2xl border-r border-white/10 flex flex-col justify-between p-6 shadow-2xl relative z-10">
+        <div>
+            <div class="flex items-center space-x-3 mb-10">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-900/50 text-lg">
+                    🎬
+                </div>
+                <h1 class="text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-purple-400 to-pink-400 tracking-wider">STREAMING ADMIN</h1>
+            </div>
+            <nav class="space-y-1.5">
+                <a href="/dashboard?tab=overview" class="flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition duration-200 {{ 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg shadow-purple-900/50 border border-purple-400/20' if active_tab == 'overview' else 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
+                    <span>📊</span> <span class="text-sm">Resumen General</span>
+                </a>
+                <a href="/dashboard?tab=accounts" class="flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition duration-200 {{ 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg shadow-purple-900/50 border border-purple-400/20' if active_tab == 'accounts' else 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
+                    <span>🖥️</span> <span class="text-sm">Cuentas Matrices</span>
+                </a>
+                <a href="/dashboard?tab=sales" class="flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition duration-200 {{ 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg shadow-purple-900/50 border border-purple-400/20' if active_tab == 'sales' else 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
+                    <span>👥</span> <span class="text-sm">Clientes y Ventas</span>
+                </a>
+                <a href="/dashboard?tab=alerts" class="flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition duration-200 {{ 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg shadow-purple-900/50 border border-purple-400/20' if active_tab == 'alerts' else 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
+                    <span>⏰</span> <span class="text-sm">Vencimientos (Alertas)</span>
+                </a>
+                <a href="/dashboard?tab=finances" class="flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition duration-200 {{ 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg shadow-purple-900/50 border border-purple-400/20' if active_tab == 'finances' else 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
+                    <span>💰</span> <span class="text-sm">Retiros y Gastos</span>
+                </a>
+                <a href="/dashboard?tab=settings" class="flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition duration-200 {{ 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg shadow-purple-900/50 border border-purple-400/20' if active_tab == 'settings' else 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
+                    <span>⚙️</span> <span class="text-sm">Configurar Admin</span>
+                </a>
+            </nav>
+        </div>
+        <div>
+            <a href="/login" class="flex items-center justify-center space-x-2 w-full bg-red-500/10 hover:bg-red-600 text-red-400 hover:text-white py-3 rounded-xl font-semibold transition duration-200 border border-red-500/20 shadow-lg text-sm group">
+                <span>🚪</span> <span class="group-hover:translate-x-0.5 transition-transform">Cerrar Sesión</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="flex-1 p-8 overflow-y-auto relative z-10">
+        
+        <!-- VISTA: RESUMEN GENERAL -->
+        {% if active_tab == 'overview' %}
+        
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-slate-900/70 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-2xl relative overflow-hidden group hover:border-purple-500/30 transition duration-300">
+                <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-green-500/10 rounded-full blur-2xl group-hover:bg-green-500/20 transition"></div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Ganancia Neta</p>
+                <h3 class="text-3xl font-extrabold text-green-400 mt-2 tracking-tight">${{ "%.2f"|format(net_profit) }}</h3>
+            </div>
+            <div class="bg-slate-900/70 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-2xl relative overflow-hidden group hover:border-purple-500/30 transition duration-300">
+                <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl group-hover:bg-purple-500/20 transition"></div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Ventas Totales</p>
+                <h3 class="text-3xl font-extrabold text-purple-400 mt-2 tracking-tight">${{ "%.2f"|format(total_sales) }}</h3>
+            </div>
+            <div class="bg-slate-900/70 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-2xl relative overflow-hidden group hover:border-purple-500/30 transition duration-300">
+                <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-yellow-500/10 rounded-full blur-2xl group-hover:bg-yellow-500/20 transition"></div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Retiros Realizados</p>
+                <h3 class="text-3xl font-extrabold text-yellow-400 mt-2 tracking-tight">${{ "%.2f"|format(total_withdrawals) }}</h3>
+            </div>
+            <div class="bg-slate-900/70 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-2xl relative overflow-hidden group hover:border-purple-500/30 transition duration-300">
+                <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition"></div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Cuentas Activas</p>
+                <h3 class="text-3xl font-extrabold text-blue-400 mt-2 tracking-tight">{{ accounts|length }}</h3>
+            </div>
+        </div>
+
+        <div class="bg-slate-900/70 backdrop-blur-xl border border-white/10 p-8 rounded-2xl shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-96 h-96 bg-purple-600/5 rounded-full blur-3xl pointer-events-none"></div>
+            <h2 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-200 to-pink-300 mb-3">Bienvenido a tu Gestor de Streaming</h2>
+            <p class="text-slate-300 mb-8 max-w-2xl text-sm leading-relaxed">Administra de manera profesional tu inventario de pantallas, clientes y finanzas desde un solo lugar con control en tiempo real.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-slate-950/40 p-6 rounded-xl border border-white/5 hover:border-white/10 transition">
+                    <h4 class="font-semibold text-purple-300 mb-3 flex items-center space-x-2 text-sm"><span>💡</span> <span>Tips de Gestión Profesional</span></h4>
+                    <ul class="text-sm text-slate-300 space-y-2.5 list-disc list-inside">
+                        <li>Usa la sección de <strong>Alertas</strong> para revisar vencimientos diarios.</li>
+                        <li>Mantén actualizado el costo de adquisición para calcular tu ganancia real.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA: CUENTAS MATRICES -->
+        {% elif active_tab == 'accounts' %}
+        <div class="space-y-6">
+            <div class="bg-slate-900/70 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-2xl">
+                <h2 class="text-xl font-bold mb-6 text-purple-300 flex items-center gap-2"><span>🖥️</span> Registrar Cuenta Matriz</h2>
+                <form action="/add_account" method="POST" class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div>
+                        <label class="block text-xs font-medium mb-1.5 text-slate-400 uppercase tracking-wider">Plataforma</label>
+                        <select name="platform" class="w-full px-4 py-3 bg-slate-950/60 rounded-xl border border-white/10 text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-sm transition">
+                            <option value="Netflix">Netflix</option>
+                            <option value="Max">Max (HBO)</option>
+                            <option value="Disney+">Disney+</option>
+                            <option value="Paramount+">Paramount+</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium mb-1.5 text-slate-400 uppercase tracking-wider">Correo</label>
+                        <input type="email" name="email" required placeholder="correo@admin.com" class="w-full px-4 py-3 bg-slate-950/60 rounded-xl border border-white/10 text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-sm transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium mb-1.5 text-slate-400 uppercase tracking-wider">Contraseña</label>
+                        <input type="text" name="password" required placeholder="Contraseña de cuenta" class="w-full px-4 py-3 bg-slate-950/60 rounded-xl border border-white/10 text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-sm transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium mb-1.5 text-slate-400 uppercase tracking-wider">Total Pantallas</label>
+                        <input type="number" name="screens_total" value="5" required class="w-full px-4 py-3 bg-slate-950/60 rounded-xl border border-white/10 text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-sm transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium mb-1.5 text-slate-400 uppercase tracking-wider">Vencimiento Cuenta</label>
+                        <input type="date" name="expiry_date" required class="w-full px-4 py-3 bg-slate-950/60 rounded-xl border border-white/10 text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-sm transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium mb-1.5 text-slate-400 uppercase tracking-wider">Costo ($)</label>
+                        <input type="number" step="0.01" name="cost_price" required placeholder="0.00" class="w-full px-4 py-3 bg-slate-950/60 rounded-xl border border-white/10 text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-sm transition">
+                    </div>
+                    <div class="md:col-span-3 flex justify-end mt-2">
+                        <button type="submit" class="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 px-7 py-3 rounded-xl font-semibold transition shadow-lg shadow-purple-900/50 text-sm border border-purple-400/20">Guardar Cuenta</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="bg-slate-900/70 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-2xl overflow-x-auto">
+                <h2 class="text-xl font-bold mb-4 text-purple-300">Inventario Actual</h2>
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-white/10 text-slate-400 text-xs uppercase tracking-wider">
+                            <th class="py-3 px-4">Plataforma</th>
+                            <th class="py-3 px-4">Correo</th>
+                            <th class="py-3 px-4">Contraseña</th>
+                            <th class="py-3 px-4">Pantallas</th>
+                            <th class="py-3 px-4">Vencimiento</th>
+                            <th class="py-3 px-4">Costo</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/5 text-sm">
+                        {% for acc in accounts %}
+                        <tr class="hover:bg-white/[0.02] transition">
+                            <td class="py-3.5 px-4 font-semibold text-purple-400">{{ acc.platform }}</td>
+                            <td class="py-3.5 px-4 text-slate-300">{{ acc.email }}</td>
+                            <td class="py-3.5 px-4 font-mono bg-slate-950/80 px-2.5 py-1 rounded text-xs text-slate-300 border border-white/5 inline-block my-1">{{ acc.password }}</td>
+                            <td class="py-3.5 px-4 text-slate-300">{{ acc.screens_available }} / {{ acc.screens_total }}</td>
+                            <td class="py-3.5 px-4 text-yellow-400 font-medium">{{ acc.expiry_date }}</td>
+                            <td class="py-3.5 px-4 text-green-400 font-semibold">${{ acc.cost_price }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="6" class="py-8 text-center text-slate-500">No hay cuentas registradas.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- VISTA: CLIENTES Y VENTAS -->
+        {% elif active_tab == 'sales' %}
+        <div class="space-y-6">
+            <div class="bg-slate-900/70 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-2xl">
+                <h2 class="text-xl font-bold mb-6 text-purple-300 flex items-center gap-2"><span>👥</span> Registrar Venta a Cliente</h2>
+                <form action="/add_sale" method="POST" class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div>
+                        <label class="block text-xs font-medium mb-1.5 text-slate-400 uppercase tracking-wider">Nombre del Cliente</label>
+                        <input type="text" name="client_name" required placeholder="Nombre completo" class="w-full px-4 py-3 bg-slate-950/60 rounded-xl border border-white/10 text-white focus:outline-none focus:border-purple-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium mb-1.5 text-slate-400 uppercase tracking-wider">Teléfono / WhatsApp</label>
+                        <input type="text" name="phone" required placeholder="+51 999999999" class="w-full px-4 py-3 bg-slate-950/60 rounded-xl border border-white/10 text-white focus:outline-none focus:border-purple-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium mb-1.5 text-slate-400 uppercase tracking-wider">Plataforma Vendida</label>
+                        <select name="platform" class="w-full px-4 py-3 bg-slate-950/60 rounded-xl border border-white/10 text-white focus:outline-none focus:border-purple-500 text-sm">
+                            <option value="Netflix">Netflix</option>
+                            <option value="Max">Max</option>
+                            <option value="Disney+">Disney+</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium mb-1.5 text-slate-400 uppercase tracking-wider">Precio Cobrado ($)</label>
+                        <input type="number" step="0.01" name="sale_price" required placeholder="0.00" class="w-full px-4 py-3 bg-slate-950/60 rounded-xl border border-white/10 text-white focus:outline-none focus:border-purple-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium mb-1.5 text-slate-400 uppercase tracking-wider">Vencimiento al Cliente</label>
+                        <input type="date" name="expiry_sale" required class="w-full px-4 py-3 bg-slate-950/60 rounded-xl border border-white/10 text-white focus:outline-none focus:border-purple-500 text-sm">
+                    </div>
+                    <div class="md:col-span-3 flex justify-end mt-2">
+                        <button type="submit" class="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 px-7 py-3 rounded-xl font-semibold transition shadow-lg shadow-purple-900/50 text-sm border border-purple-400/20">Registrar Venta</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="bg-slate-900/70 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-2xl overflow-x-auto">
+                <h2 class="text-xl font-bold mb-4 text-purple-300">Lista de Clientes Registrados</h2>
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-white/10 text-slate-400 text-xs uppercase tracking-wider">
+                            <th class="py-3 px-4">Cliente</th>
+                            <th class="py-3 px-4">Teléfono</th>
+                            <th class="py-3 px-4">Plataforma</th>
+                            <th class="py-3 px-4">Precio Venta</th>
+                            <th class="py-3 px-4">Vencimiento Cliente</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/5 text-sm">
+                        {% for sale in sales %}
+                        <tr class="hover:bg-white/[0.02] transition">
+                            <td class="py-3.5 px-4 font-semibold text-white">{{ sale.client_name }}</td>
+                            <td class="py-3.5 px-4 text-slate-300">{{ sale.phone }}</td>
+                            <td class="py-3.5 px-4 text-purple-400 font-medium">{{ sale.platform }}</td>
+                            <td class="py-3.5 px-4 text-green-400 font-semibold">${{ sale.sale_price }}</td>
+                            <td class="py-3.5 px-4 text-yellow-400 font-medium">{{ sale.expiry_sale }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5" class="py-8 text-center text-slate-500">No hay ventas registradas todavía.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- VISTA: ALERTAS DE VENCIMIENTO -->
+        {% elif active_tab == 'alerts' %}
+        <div class="bg-slate-900/70 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-2xl">
+            <h2 class="text-xl font-bold mb-1 text-purple-300 flex items-center gap-2"><span>⏰</span> Alertas y Próximos Vencimientos</h2>
+            <p class="text-xs text-slate-400 mb-6">Monitorea los servicios que están próximos a expirar para contactar a tus clientes.</p>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-white/10 text-slate-400 text-xs uppercase tracking-wider">
+                            <th class="py-3 px-4">Cliente</th>
+                            <th class="py-3 px-4">Teléfono</th>
+                            <th class="py-3 px-4">Plataforma</th>
+                            <th class="py-3 px-4">Fecha de Vencimiento</th>
+                            <th class="py-3 px-4">Acción Rápida</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/5 text-sm">
+                        {% for sale in sales %}
+                        <tr class="hover:bg-white/[0.02] transition">
+                            <td class="py-3.5 px-4 font-semibold text-white">{{ sale.client_name }}</td>
+                            <td class="py-3.5 px-4 text-slate-300">{{ sale.phone }}</td>
+                            <td class="py-3.5 px-4 text-purple-400 font-medium">{{ sale.platform }}</td>
+                            <td class="py-3.5 px-4 text-yellow-400 font-semibold">{{ sale.expiry_sale }}</td>
+                            <td class="py-3.5 px-4">
+                                <a href="https://wa.me/{{ sale.phone }}?text=Hola%20{{ sale.client_name }},%20tu%20cuenta%20de%20{{ sale.platform }}%20está%20por%20vencer.%20¿Deseas%20renovar?" target="_blank" class="bg-green-500/10 text-green-400 border border-green-500/20 px-3.5 py-1.5 rounded-xl text-xs font-semibold hover:bg-green-600 hover:text-white transition duration-200 inline-flex items-center gap-1.5 shadow-sm">💬 WhatsApp</a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5" class="py-8 text-center text-slate-500">No hay clientes con alertas de vencimiento pendientes.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- VISTA: RETIROS Y GASTOS -->
+        {% elif active_tab == 'finances' %}
+        <div class="space-y-6">
+            <div class="bg-slate-900/70 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-2xl">
+                <h2 class="text-xl font-bold mb-6 text-purple-300 flex items-center gap-2"><span>💰</span> Registrar Retiro de Dinero</h2>
+                <form action="/add_withdrawal" method="POST" class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div>
+                        <label class="block text-xs font-medium mb-1.5 text-slate-400 uppercase tracking-wider">Monto Retirado ($)</label>
+                        <input type="number" step="0.01" name="amount" required placeholder="0.00" class="w-full px-4 py-3 bg-slate-950/60 rounded-xl border border-white/10 text-white focus:outline-none focus:border-purple-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium mb-1.5 text-slate-400 uppercase tracking-wider">Descripción / Motivo</label>
+                        <input type="text" name="description" placeholder="Ej: Retiro ganancias semana 1" required class="w-full px-4 py-3 bg-slate-950/60 rounded-xl border border-white/10 text-white focus:outline-none focus:border-purple-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium mb-1.5 text-slate-400 uppercase tracking-wider">Fecha</label>
+                        <input type="date" name="date" required class="w-full px-4 py-3 bg-slate-950/60 rounded-xl border border-white/10 text-white focus:outline-none focus:border-purple-500 text-sm">
+                    </div>
+                    <div class="md:col-span-3 flex justify-end mt-2">
+                        <button type="submit" class="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 px-7 py-3 rounded-xl font-semibold transition shadow-lg shadow-purple-900/50 text-sm border border-purple-400/20">Registrar Retiro</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="bg-slate-900/70 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-2xl overflow-x-auto">
+                <h2 class="text-xl font-bold mb-4 text-purple-300">Historial de Retiros</h2>
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-white/10 text-slate-400 text-xs uppercase tracking-wider">
+                            <th class="py-3 px-4">Fecha</th>
+                            <th class="py-3 px-4">Descripción</th>
+                            <th class="py-3 px-4">Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/5 text-sm">
+                        {% for w in withdrawals %}
+                        <tr class="hover:bg-white/[0.02] transition">
+                            <td class="py-3.5 px-4 text-yellow-400 font-medium">{{ w.date }}</td>
+                            <td class="py-3.5 px-4 text-white">{{ w.description }}</td>
+                            <td class="py-3.5 px-4 text-red-400 font-semibold">-${{ w.amount }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="3" class="py-8 text-center text-slate-500">No hay retiros registrados.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- VISTA: CONFIGURACIÓN -->
+        {% elif active_tab == 'settings' %}
+        <div class="bg-slate-900/70 backdrop-blur-xl border border-white/10 p-8 rounded-2xl shadow-2xl max-w-lg">
+            <h2 class="text-xl font-bold mb-2 text-purple-300">Configuración de Administrador</h2>
+            <p class="text-xs text-slate-400 mb-6">Administra los parámetros generales de tu aplicación web.</p>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium mb-1.5 text-slate-400 uppercase tracking-wider">Usuario Administrador</label>
+                    <input type="text" value="admin" disabled class="w-full px-4 py-3 bg-slate-950/40 rounded-xl border border-white/5 text-slate-400 cursor-not-allowed text-sm">
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </main>
+
+</body>
+</html>
