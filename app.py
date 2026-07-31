@@ -1,5 +1,5 @@
-import os
 from datetime import datetime, timedelta
+import os
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -103,18 +103,6 @@ def dashboard():
   total_withdrawals = sum(w.amount for w in withdrawals)
   net_profit = total_sales - total_costs - total_withdrawals
 
-  # Filtrar alertas (vencimientos próximos en los siguientes 3 días o vencidos)
-  today = datetime.now().date()
-  alerts = []
-  for s in sales:
-    try:
-      exp_date = datetime.strptime(s.expiry_sale, '%Y-%m-%d').date()
-      diff = (exp_date - today).days
-      if diff <= 3:
-        alerts.append({'sale': s, 'days_left': diff})
-    except:
-      pass
-
   return render_template(
       'dashboard.html',
       active_tab=active_tab,
@@ -125,7 +113,6 @@ def dashboard():
       total_costs=total_costs,
       total_withdrawals=total_withdrawals,
       net_profit=net_profit,
-      alerts=alerts,
   )
 
 
@@ -189,7 +176,6 @@ def renew_sale(id):
   sale = ClientSale.query.get_or_404(id)
   try:
     current_expiry = datetime.strptime(sale.expiry_sale, '%Y-%m-%d').date()
-    # Si ya venció, renovar desde hoy; si no, sumar 30 días a su fecha actual de vencimiento
     base_date = max(current_expiry, datetime.now().date())
     new_expiry = base_date + timedelta(days=30)
     sale.expiry_sale = new_expiry.strftime('%Y-%m-%d')
