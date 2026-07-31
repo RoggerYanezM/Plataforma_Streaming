@@ -1,4 +1,5 @@
 import os
+from datetime import datetime, timedelta
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -42,6 +43,7 @@ class ClientSale(db.Model):
   platform = db.Column(db.String(50), nullable=False)
   sale_price = db.Column(db.Float, nullable=False)
   expiry_sale = db.Column(db.String(20), nullable=False)
+  screens_count = db.Column(db.Integer, default=1, nullable=False)
 
 
 class Withdrawal(db.Model):
@@ -101,6 +103,18 @@ def dashboard():
   total_withdrawals = sum(w.amount for w in withdrawals)
   net_profit = total_sales - total_costs - total_withdrawals
 
+  # Filtrar alertas (vencimientos próximos en los siguientes 3 días o vencidos)
+  today = datetime.now().date()
+  alerts = []
+  for s in sales:
+    try:
+      exp_date = datetime.strptime(s.expiry_sale, '%Y-%m-%d').date()
+      diff = (exp_date - today).days
+      if diff <= 3:
+        alerts.append({'sale': s, 'days_left': diff})
+    except:
+      pass
+
   return render_template(
       'dashboard.html',
       active_tab=active_tab,
@@ -111,6 +125,7 @@ def dashboard():
       total_costs=total_costs,
       total_withdrawals=total_withdrawals,
       net_profit=net_profit,
+      alerts=alerts,
   )
 
 
@@ -142,15 +157,45 @@ def add_account():
 def add_sale():
   if 'user' not in session:
     return redirect(url_for('login'))
+
+  screens = int(request.form.get('screens_count', 1))
   new_sale = ClientSale(
       client_name=request.form['client_name'],
       phone=request.form['phone'],
       platform=request.form['platform'],
       sale_price=float(request.form['sale_price']),
       expiry_sale=request.form['expiry_sale'],
+      screens_count=screens,
   )
   db.session.add(new_sale)
   db.session.commit()
+  return redirect(url_for('dashboard', tab='sales'))
+
+
+@app.route('/delete_sale/<int:id>')
+def delete_sale(id):
+  if 'user' not in session:
+    return redirect(url_for('login'))
+  sale = ClientSale.query.get_or_404(id)
+  db.session.delete(sale)
+  db.session.commit()
+  return redirect(url_for('dashboard', tab='sales'))
+
+
+@app.route('/renew_sale/<int:id>')
+def renew_sale(id):
+  if 'user' not in session:
+    return redirect(url_for('login'))
+  sale = ClientSale.query.get_or_404(id)
+  try:
+    current_expiry = datetime.strptime(sale.expiry_sale, '%Y-%m-%d').date()
+    # Si ya venció, renovar desde hoy; si no, sumar 30 días a su fecha actual de vencimiento
+    base_date = max(current_expiry, datetime.now().date())
+    new_expiry = base_date + timedelta(days=30)
+    sale.expiry_sale = new_expiry.strftime('%Y-%m-%d')
+    db.session.commit()
+  except:
+    pass
   return redirect(url_for('dashboard', tab='sales'))
 
 
