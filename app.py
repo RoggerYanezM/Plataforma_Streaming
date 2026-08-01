@@ -64,8 +64,7 @@ with app.app_context():
 
 @app.route('/')
 def home():
-    if 'user' in session:
-        return redirect(url_for('dashboard'))
+    session.clear()  # Borra la sesión al entrar al enlace principal
     return redirect(url_for('login'))
 
 
