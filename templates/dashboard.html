@@ -218,7 +218,21 @@
                     <tbody class="divide-y divide-white/5 text-sm">
                         {% for acc in accounts %}
                         <tr class="hover:bg-white/[0.02] transition">
-                            <td class="py-3.5 px-4 font-semibold text-purple-400">{{ acc.platform }}</td>
+                            <td class="py-3.5 px-4 font-semibold text-purple-400 flex items-center gap-2.5">
+                                     <!-- Icono SVG de plataforma -->
+                                    {% if acc.platform == 'Netflix' %}
+                                        <svg class="w-5 h-5 text-red-600 fill-current inline-block shrink-0" viewBox="0 0 24 24"><path d="M5.4 0v24h3.2V14.1l7.2 9.9h4.2V0h-3.2v9.9L8.6 0H5.4z"/></svg>
+                                    {% elif acc.platform == 'Max' %}
+                                        <svg class="w-5 h-5 text-indigo-400 fill-current inline-block shrink-0" viewBox="0 0 24 24"><path d="M3.2 4h3.6l2.8 8.2L12.4 4h3.6l-5 16h-3.6L3.2 4z"/></svg>
+                                    {% elif acc.platform == 'Disney+' %}
+                                        <svg class="w-5 h-5 text-blue-400 fill-current inline-block shrink-0" viewBox="0 0 24 24"><path d="M19 10.5h-3.5V7h-2v3.5H10v2h3.5V16h2v-3.5H19v-2zM4 19h16v2H4z"/></svg>
+                                    {% elif acc.platform == 'Paramount+' %}
+                                        <svg class="w-5 h-5 text-blue-500 fill-current inline-block shrink-0" viewBox="0 0 24 24"><path d="M12 2L2 19h20L12 2z"/></svg>
+                                    {% else %}
+                                        <svg class="w-5 h-5 text-purple-400 fill-current inline-block shrink-0" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
+                                    {% endif %}
+                                    <span>{{ acc.platform }}</span>
+                            </td>
                             <td class="py-3.5 px-4 text-slate-300">{{ acc.email }}</td>
                             <td class="py-3.5 px-4 font-mono bg-slate-950/80 px-2.5 py-1 rounded text-xs text-slate-300 border border-white/5 inline-block my-1">{{ acc.password }}</td>
                             <td class="py-3.5 px-4 text-slate-300">{{ acc.screens_available }} / {{ acc.screens_total }}</td>
@@ -337,7 +351,21 @@
                         <tr class="hover:bg-white/[0.02] transition">
                             <td class="py-3.5 px-4 font-semibold text-white">{{ sale.client_name }}</td>
                             <td class="py-3.5 px-4 text-slate-300">{{ sale.phone }}</td>
-                            <td class="py-3.5 px-4 text-purple-400 font-medium">{{ sale.platform }}</td>
+                            <td class="py-3.5 px-4 text-purple-400 font-medium flex items-center gap-2.5">
+                                <!-- Icono SVG de plataforma -->
+                                {% if sale.platform == 'Netflix' %}
+                                    <svg class="w-5 h-5 text-red-600 fill-current inline-block shrink-0" viewBox="0 0 24 24"><path d="M5.4 0v24h3.2V14.1l7.2 9.9h4.2V0h-3.2v9.9L8.6 0H5.4z"/></svg>
+                                {% elif sale.platform == 'Max' %}
+                                    <svg class="w-5 h-5 text-indigo-400 fill-current inline-block shrink-0" viewBox="0 0 24 24"><path d="M3.2 4h3.6l2.8 8.2L12.4 4h3.6l-5 16h-3.6L3.2 4z"/></svg>
+                                {% elif sale.platform == 'Disney+' %}
+                                    <svg class="w-5 h-5 text-blue-400 fill-current inline-block shrink-0" viewBox="0 0 24 24"><path d="M19 10.5h-3.5V7h-2v3.5H10v2h3.5V16h2v-3.5H19v-2zM4 19h16v2H4z"/></svg>
+                                {% elif sale.platform == 'Paramount+' %}
+                                    <svg class="w-5 h-5 text-blue-500 fill-current inline-block shrink-0" viewBox="0 0 24 24"><path d="M12 2L2 19h20L12 2z"/></svg>
+                                {% else %}
+                                    <svg class="w-5 h-5 text-purple-400 fill-current inline-block shrink-0" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
+                                {% endif %}
+                                <span>{{ sale.platform }}</span>
+                            </td>
                             <td class="py-3.5 px-4 text-yellow-400 font-semibold">{{ sale.expiry_sale }}</td>
                             <td class="py-3.5 px-4">
                                 <a href="https://wa.me/{{ sale.phone }}?text=Hola%20{{ sale.client_name }},%20tu%20cuenta%20de%20{{ sale.platform }}%20está%20por%20vencer.%20¿Deseas%20renovar?" target="_blank" class="bg-green-500/10 text-green-400 border border-green-500/20 px-3.5 py-1.5 rounded-xl text-xs font-semibold hover:bg-green-600 hover:text-white transition duration-200 inline-flex items-center gap-1.5 shadow-sm">💬 WhatsApp</a>
